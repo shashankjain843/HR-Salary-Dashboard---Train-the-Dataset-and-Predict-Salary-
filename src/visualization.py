@@ -99,3 +99,45 @@ def plot_feature_importance(importances, feature_names, save_path=None):
         plt.show()
         
     return df_imp
+
+def plot_learning_curve(model, X, y, model_name, save_path=None):
+    """Plots the learning curve (training and validation score vs training samples)."""
+    from sklearn.model_selection import learning_curve
+    
+    # Run on a sample if dataset is too large, to keep it quick
+    if len(X) > 20000:
+        indices = np.random.choice(len(X), size=20000, replace=False)
+        X_sample = X.iloc[indices] if isinstance(X, pd.DataFrame) else X[indices]
+        y_sample = y.iloc[indices] if isinstance(y, pd.Series) else y[indices]
+    else:
+        X_sample, y_sample = X, y
+        
+    train_sizes, train_scores, val_scores = learning_curve(
+        model, X_sample, y_sample, cv=3, scoring='r2', n_jobs=-1,
+        train_sizes=np.linspace(0.1, 1.0, 5), random_state=42
+    )
+    
+    train_mean = np.mean(train_scores, axis=1)
+    train_std = np.std(train_scores, axis=1)
+    val_mean = np.mean(val_scores, axis=1)
+    val_std = np.std(val_scores, axis=1)
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(train_sizes, train_mean, 'o-', color="blue", label="Training Score")
+    plt.plot(train_sizes, val_mean, 'o-', color="green", label="Cross-Validation Score")
+    
+    plt.fill_between(train_sizes, train_mean - train_std, train_mean + train_std, alpha=0.15, color="blue")
+    plt.fill_between(train_sizes, val_mean - val_std, val_mean + val_std, alpha=0.15, color="green")
+    
+    plt.title(f"Learning Curve: {model_name}", fontsize=14, pad=15)
+    plt.xlabel("Training Examples", fontsize=12)
+    plt.ylabel("R² Score", fontsize=12)
+    plt.legend(loc="best")
+    plt.grid(True, linestyle=":", alpha=0.6)
+    
+    if save_path:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        plt.savefig(save_path, bbox_inches="tight", dpi=150)
+        plt.close()
+    else:
+        plt.show()

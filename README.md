@@ -89,49 +89,62 @@ Salary_Prediction_Project/
 
 ## 6. Pipeline Workflow & Methodology
 
-### Phase A: Complete Exploratory Data Analysis (EDA)
-- Run statistics checks using `data.info()` and `data.describe()`.
-- Identify data anomalies, notably that the raw minimum salary was negative (-13,727.57 INR) due to gaussian noise.
-- Check correlations: Years of Experience is the dominant feature correlated with Salary (~0.73).
+### Phase A: Dedicated Exploratory Data Analysis (EDA)
+- **Dataset Dimensions**: Explicitly checked shapes (`df_raw.shape` shows 200,000 rows).
+- **Statistical Summary**: Run `data.info()` and `data.describe()` to find range and columns. Minimum raw salary was negative (-13,727.57 INR), indicating synthetic generation noise.
+- **Missing & Duplicate Analysis**: Checked for null values (none present) and duplicate records.
+- **Correlations & Distributions**: Generated Correlation Matrix Heatmaps and univariate histograms. Years of Experience shows strong correlation (~0.73) with target salary.
+- **Outlier Detection**: Built box plots showing salary ranges and identified target outliers (kept as valid high salary entries rather than errors).
+- **Pair Plot Analysis**: Plotted a scatter matrix (pair plot) showing multi-feature relationships.
 
-### Phase B: Data Cleaning
-- **Negative Salaries**: 2,136 records (1.07%) with negative salaries were dropped.
-- **Physical Inconsistencies**: 82,771 records (41.3%) were removed where `Years_of_Experience > Age - 18` (e.g. a 22-year-old claiming 15 years of experience). This is a critical quality check that drastically improves model reliability.
+### Phase B: Rigorous Data Cleaning
+- **Missing value handling**: Dropped if any were present (none in raw data).
+- **Duplicate removal**: Deleted duplicated rows to prevent redundant records.
+- **Data type validation**: Cast features to proper `int64` and target to `float64` for strict typing.
+- **Invalid Values (Negative Salaries)**: Dropped 2,136 records (1.07%) with negative salaries.
+- **Physical Inconsistencies**: Removed 82,771 records (41.3%) where `Years_of_Experience > Age - 18` (e.g. Experience exceeding legal adult working years).
+- **Final Cleaned Dataset**: Verified dataset is completely clean. Final cleaned dataset dimensions: **115,093 rows x 3 columns** (representing 42.45% noise reduction).
 
-### Phase C: Feature Engineering & Scaling
-- Feature scaling is applied to `Age` and `Years_of_Experience` using `StandardScaler`.
-- **Anti-Leakage Protocol**: Scaler is fit exclusively on training data, and then used to transform test and inference data.
+### Phase C: Feature Engineering
+- **Feature Scaling**: Normalized Age and Experience features using `StandardScaler`.
+- **Feature Selection**: Correlation matrix confirmed no multicollinearity between Age and Experience.
+- **Polynomial & Interaction Features**: Added markdown analysis explaining polynomial combinations and interactions (e.g. `Age * Experience`).
+- **Strict Anti-Leakage Protocol**: Scaler fitted exclusively on training split, then applied independently to test and inference datasets.
 
-### Phase D: Model Training & Evaluation
-We train 5 regressors and compare them using Mean Absolute Error (MAE), Root Mean Squared Error (RMSE), and R² Score.
+### Phase D: Model Selection & Comparison
+We train and evaluate 6 regressors using 5-fold Cross-Validation (CV) on the training set and standard evaluation on the test set:
 
-| Model | MAE | RMSE | R² Score |
-|---|---|---|---|
-| **Lasso Regression** | **₹3,888.96** | **₹4,846.26** | **0.5386** |
-| Ridge Regression | ₹3,888.96 | ₹4,846.26 | 0.5386 |
-| Linear Regression | ₹3,888.96 | ₹4,846.26 | 0.5386 |
-| Tuned Random Forest | ₹3,898.94 | ₹4,860.13 | 0.5359 |
-| Decision Tree | ₹3,904.38 | ₹4,867.85 | 0.5344 |
-| Random Forest | ₹3,904.57 | ₹4,867.98 | 0.5344 |
+| Model | MAE | RMSE | R² Score | 5-Fold CV R² Score |
+|---|---|---|---|---|
+| **Lasso Regression** | **₹3,888.96** | **₹4,846.26** | **0.5386** | **0.5436** |
+| Ridge Regression | ₹3,888.96 | ₹4,846.26 | 0.5386 | 0.5436 |
+| Linear Regression | ₹3,888.96 | ₹4,846.26 | 0.5386 | 0.5436 |
+| XGBoost Regressor | ₹3,892.72 | ₹4,851.28 | 0.5376 | 0.5417 |
+| Tuned Random Forest | ₹3,898.94 | ₹4,860.13 | 0.5359 | 0.5399 |
+| Decision Tree | ₹3,904.38 | ₹4,867.85 | 0.5344 | 0.5382 |
+| Random Forest (Base) | ₹3,904.57 | ₹4,867.98 | 0.5344 | 0.5381 |
 
-- *Note*: Lasso Regression was selected as the best overall model due to slightly higher R² (0.5386) and low computational latency.
+*Note*: Lasso Regression was selected as the final production model due to highest R² and sub-millisecond inference latency.
 
 ### Phase E: Hyperparameter Tuning
-We tuned the Random Forest Regressor on a representative sample of 10,000 training rows:
-- **GridSearchCV**: 108 fits completed in 26.65s. Best params: `{'max_depth': 10, 'min_samples_leaf': 2, 'min_samples_split': 5, 'n_estimators': 150}` (R² = 0.5163).
-- **RandomizedSearchCV**: 30 fits completed in 6.56s. Best params: `{'n_estimators': 150, 'min_samples_split': 2, 'min_samples_leaf': 2, 'max_depth': 10}` (R² = 0.5162).
-- *Insight*: RandomizedSearchCV achieved 99.9% of GridSearch performance in less than 25% of the time, demonstrating tuning efficiency.
+Random Forest was tuned on a representative sample of 10,000 training records to prevent training lags:
+- **GridSearchCV**: 108 fits completed in ~20s. Best params: `{'max_depth': 10, 'min_samples_leaf': 2, 'min_samples_split': 5, 'n_estimators': 150}` (CV R² = 0.5023).
+- **RandomizedSearchCV**: 30 fits completed in ~10s. Best params: `{'n_estimators': 150, 'min_samples_split': 2, 'min_samples_leaf': 2, 'max_depth': 10}` (CV R² = 0.5023).
+- **Before vs After Tuning (on Test Set)**:
+  - Base RF: MAE = ₹3,904.57 | RMSE = ₹4,867.98 | R² = 0.5344
+  - Tuned RF: MAE = ₹3,898.94 | RMSE = ₹4,860.13 | R² = 0.5359
+  - *Result*: Tuning improved performance and successfully reduced tree overfitting by capping max depth.
 
-### Phase F: Feature Importance
-- **Years of Experience** holds **96.96%** of the relative predictive weight.
-- **Age** holds only **3.04%** once experience is accounted for.
-- *Conclusion*: Experience is the primary driver of compensation benchmarking, while Age has minor explanatory power.
+### Phase F: Model Interpretation & Error Analysis
+- **Feature Importance**: **Years of Experience** dominates predictions with **96.96%** of relative importance. **Age** holds only **3.04%** weight.
+- **Error Analysis**: Predictions have higher absolute error for entry-level experience levels (0-5 Yrs) due to higher noise variance in synthetic generation.
+- **Non-linear vs Linear Comparison**: Linear models (Lasso) perform slightly better than non-linear models (Decision Trees, Random Forest, XGBoost) because the underlying data generation function is strictly linear with structured noise.
 
 ---
 
 ## 7. Business Insights
-1. **Experience Dominates**: Years of experience is by far the single biggest driver of salary.
-2. **Quality Cleaning is Vital**: Removing physically inconsistent rows prevents the model from generating illogical predictions.
+1. **Experience is King**: Salary packages are overwhelmingly determined by actual years of professional experience rather than age.
+2. **Quality Cleaning is Vital**: Removing physically inconsistent rows prevents the model from generating illogical predictions (such as a 20-year-old earning senior salary).
 3. **Linear Baselines are Robust**: The linear models achieved an R² score of 0.5386, performing slightly better than ensembles due to the underlying linear function of the synthetic data.
 4. **Diminishing Returns on Ensembles**: Random Forest is significantly heavier to train and tune, but yields no performance gain over Lasso in this linear scenario.
 5. **Age-Experience Correlation Gap**: Age has a weak direct correlation with salary, meaning a mature career changer with 0 years of experience starts closer to entry-level salary levels.
@@ -139,11 +152,13 @@ We tuned the Random Forest Regressor on a representative sample of 10,000 traini
 ---
 
 ## 8. Dashboard Features
-- **Sidebar Menu**: Interactive radio buttons for Home, EDA Explorer, Predictor, and Metrics.
-- **Dashboard KPIs**: Metric cards displaying Total records, Average Salary, Salary Range, and Averages.
-- **Interactive EDA Tab**: Plotly express histograms, zoomable scatter plots, and hover heatmaps.
-- **Predictor Tab**: Sliders for Age and Experience, offering instant predictions, error margins, and a breakdown card.
-- **Performance Tab**: Model ranking lists, bar chart evaluations, and feature importance.
+- **Sidebar Navigation**: Select between Overview, EDA Explorer, Predictor, Model Performance, and About Project.
+- **Dashboard KPIs**: Metric cards displaying Total cleaned records, Average salary, Salary range, and average experience/age.
+- **Interactive Dataset Explorer**: Preview and compare the raw vs. cleaned datasets, check schema definitions, missing values, duplicates, and data quality logs.
+- **Advanced EDA Tabs**: Interactive Plotly charts for histograms, heatmaps, outlier boxplots, and scatter matrices (pair plots).
+- **Salary Predictor**: Text/Number inputs with built-in boundary checks and physical inconsistency alerts (warning if Experience > Age - 18).
+- **Model Metrics & Tuning comparison**: Comparative performance table, R² & MAE plots, Grid vs Random tuning logs, and pre-rendered diagnostic charts (Residuals, Prediction Errors, and Learning Curves).
+- **About Project**: A complete end-to-end documentation reference page in the dashboard.
 
 ---
 

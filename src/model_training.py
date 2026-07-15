@@ -10,26 +10,40 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 def train_base_models(X_train, y_train):
-    """Trains 5 baseline regression models."""
+    """Trains 6 baseline regression models including XGBoost and runs 5-fold CV."""
     print("Training baseline models...")
+    from xgboost import XGBRegressor
+    from sklearn.model_selection import cross_val_score
+    
     models = {
         "Linear Regression": LinearRegression(),
         "Ridge Regression": Ridge(alpha=1.0),
         "Lasso Regression": Lasso(alpha=1.0),
         "Decision Tree": DecisionTreeRegressor(random_state=42),
-        "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42)
+        "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42),
+        "XGBoost Regressor": XGBRegressor(n_estimators=100, random_state=42, learning_rate=0.1, max_depth=6)
     }
     
+    cv_results = {}
     for name, model in models.items():
         start_time = time.time()
+        
+        # Fit model
         model.fit(X_train, y_train)
         duration = time.time() - start_time
-        print(f"  Trained {name} in {duration:.2f} seconds.")
         
-    return models
+        # 5-fold Cross Validation (R2 score)
+        cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring='r2', n_jobs=-1)
+        mean_cv = np.mean(cv_scores)
+        std_cv = np.std(cv_scores)
+        cv_results[name] = {"cv_mean": mean_cv, "cv_std": std_cv}
+        
+        print(f"  Trained {name} in {duration:.2f} seconds | 5-Fold CV R2: {mean_cv:.4f} (+/- {std_cv:.4f})")
+        
+    return models, cv_results
 
-def evaluate_models(models, X_test, y_test):
-    """Evaluates all trained models on regression metrics."""
+def evaluate_models(models, X_test, y_test, cv_results=None):
+    """Evaluates all trained models on regression metrics and integrates CV scores if available."""
     print("\n--- Evaluating Models ---")
     results = []
     
@@ -40,14 +54,24 @@ def evaluate_models(models, X_test, y_test):
         rmse = np.sqrt(mse)
         r2 = r2_score(y_test, preds)
         
-        results.append({
+        row = {
             "Model": name,
             "MAE": mae,
             "MSE": mse,
             "RMSE": rmse,
             "R2 Score": r2
-        })
-        print(f"  {name:20s} | MAE: {mae:8.2f} | RMSE: {rmse:8.2f} | R2: {r2:.4f}")
+        }
+        
+        if cv_results and name in cv_results:
+            row["CV R2 Mean"] = cv_results[name]["cv_mean"]
+            row["CV R2 Std"] = cv_results[name]["cv_std"]
+        else:
+            row["CV R2 Mean"] = np.nan
+            row["CV R2 Std"] = np.nan
+            
+        results.append(row)
+        cv_str = f" | CV R2: {row['CV R2 Mean']:.4f}" if not np.isnan(row["CV R2 Mean"]) else ""
+        print(f"  {name:20s} | MAE: {mae:8.2f} | RMSE: {rmse:8.2f} | R2: {r2:.4f}{cv_str}")
         
     return pd.DataFrame(results)
 

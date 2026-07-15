@@ -7,7 +7,7 @@ import numpy as np
 # Set standard output encoding to utf-8
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor
 
@@ -17,7 +17,8 @@ from src.visualization import (
     plot_actual_vs_predicted, 
     plot_residual_plot, 
     plot_error_distribution, 
-    plot_feature_importance
+    plot_feature_importance,
+    plot_learning_curve
 )
 
 def main():
@@ -54,10 +55,10 @@ def main():
     print("Features scaled successfully using StandardScaler.")
     
     # 6. Train baseline models
-    models = train_base_models(X_train_scaled, y_train)
+    models, cv_results = train_base_models(X_train_scaled, y_train)
     
     # 7. Evaluate baseline models
-    metrics_df = evaluate_models(models, X_test_scaled, y_test)
+    metrics_df = evaluate_models(models, X_test_scaled, y_test, cv_results)
     metrics_df.to_csv(os.path.join(base_path, "reports", "model_comparison_metrics.csv"), index=False)
     
     # 8. Hyperparameter Tuning for Random Forest
@@ -69,11 +70,19 @@ def main():
     tuned_rf = RandomForestRegressor(**best_rf_params, random_state=42)
     tuned_rf.fit(X_train_scaled, y_train)
     
+    # Calculate Cross-Validation for Tuned Random Forest
+    print("Calculating cross-validation scores for Tuned Random Forest...")
+    tuned_cv_scores = cross_val_score(tuned_rf, X_train_scaled, y_train, cv=5, scoring='r2', n_jobs=-1)
+    cv_results["Tuned Random Forest"] = {
+        "cv_mean": np.mean(tuned_cv_scores),
+        "cv_std": np.std(tuned_cv_scores)
+    }
+    
     # Update models dict with Tuned Random Forest
     models["Tuned Random Forest"] = tuned_rf
     
     # Re-evaluate all models (including tuned)
-    final_metrics_df = evaluate_models(models, X_test_scaled, y_test)
+    final_metrics_df = evaluate_models(models, X_test_scaled, y_test, cv_results)
     final_metrics_df.to_csv(os.path.join(base_path, "reports", "final_model_comparison_metrics.csv"), index=False)
     
     # 9. Get predictions for diagnostic plots using the best model
@@ -99,6 +108,10 @@ def main():
     plot_error_distribution(
         residuals, best_model_name,
         save_path=os.path.join(base_path, "reports", "error_distribution.png")
+    )
+    plot_learning_curve(
+        best_model, X_train_scaled, y_train, best_model_name,
+        save_path=os.path.join(base_path, "reports", "learning_curve.png")
     )
     
     # Feature Importance for Random Forest (use tuned model)
