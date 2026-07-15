@@ -39,7 +39,7 @@ An explainable prediction system with less than 10% average error rate, deployed
 ---
 
 ## 4. Technologies Used
-- **Language**: Python 3.12.0
+- **Language**: Python 3.14
 - **Data Manipulation**: Pandas, NumPy
 - **Machine Learning**: Scikit-Learn
 - **Visualization**: Plotly Express, Matplotlib, Seaborn
