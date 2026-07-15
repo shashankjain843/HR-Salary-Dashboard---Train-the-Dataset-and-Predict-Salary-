@@ -1,0 +1,24 @@
+# Python Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python caching
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Models & binary artifacts (large files, ignore except code)
+*.pkl
+*.joblib
+models/*.pkl
+models/*.joblib
+
+# OS specific files
+.DS_Store
+Thumbs.db

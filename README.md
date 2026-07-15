@@ -1,0 +1,205 @@
+# Enterprise HR Salary Prediction & Analytics System
+
+An industry-grade, end-to-end Data Science and Machine Learning project designed to clean payroll data, build robust regression models, perform hyperparameter optimization, and deploy an interactive analytics dashboard for real-time compensation benchmarking.
+
+---
+
+## 1. Project Overview
+This project upgrades a basic regression project into a production-oriented, modular, and explainable Machine Learning system. The project features clean Python modules, a comprehensive Jupyter Notebook, multiple candidate models, hyperparameter tuning comparisons, and a premium interactive Streamlit dashboard.
+
+---
+
+## 2. Problem Statement
+### Business Problem
+determining employee salary benchmark structures is often done on an ad-hoc basis, leading to internal pay inequalities, demographic discrepancies, and hiring inefficiencies. HR departments require an objective, data-driven system to estimate fair compensation.
+
+### Objectives
+- **Build an End-to-End Pipeline**: Clean raw payroll datasets and enforce physical data rules (e.g. experience cannot exceed logical age limits).
+- **Train Multiple Regressors**: Evaluate Linear Regression, Ridge, Lasso, Decision Trees, and Random Forests.
+- **Hypertune Ensembles**: Compare GridSearchCV and RandomizedSearchCV for Random Forest Regressors.
+- **Provide Dashboard Interface**: Deliver an interactive Streamlit UI containing KPI cards, Plotly charts, model metrics, and real-time inference.
+
+### Expected Outcome
+An explainable prediction system with less than 10% average error rate, deployed locally as a portfolio-ready web dashboard.
+
+### Success Criteria
+- **R² Score >= 0.50** (primary)
+- **MAE < 4,000 INR** (secondary)
+
+---
+
+## 3. Dataset Description
+- **Source**: Historical HR payroll database (synthetic representation).
+- **Rows**: 200,000 records
+- **Features**:
+  - `Age` (integer): Employee age (range: 22 - 59).
+  - `Years_of_Experience` (integer): Total years of experience (range: 0 - 39).
+- **Target**: `Target_Salary` (float): The actual employee monthly salary in INR.
+
+---
+
+## 4. Technologies Used
+- **Language**: Python 3.12+
+- **Data Manipulation**: Pandas, NumPy
+- **Machine Learning**: Scikit-Learn
+- **Visualization**: Plotly Express, Matplotlib, Seaborn
+- **Dashboard Deployment**: Streamlit
+- **Serialization & Helper**: Joblib, Faker, Nbformat
+
+---
+
+## 5. Folder Structure
+```
+Salary_Prediction_Project/
+│
+├── data/
+│   ├── raw/
+│   │   └── hr_salary_data.csv          # Raw generated payroll data
+│   └── processed/
+│       └── hr_salary_cleaned.csv       # Preprocessed and filtered dataset
+│
+├── src/
+│   ├── data_preprocessing.py           # Loading, cleaning, and scaling pipeline
+│   ├── model_training.py               # Model fits, CV grid tuning, and saving
+│   └── visualization.py                # Plotting diagnostics and importances
+│
+├── notebooks/
+│   └── EDA_and_Model_Training.ipynb    # Comprehensive story-driven notebook
+│
+├── models/
+│   ├── best_model.pkl                  # Serialized best regressor (Lasso)
+│   ├── scaler.pkl                      # Fitted StandardScaler object
+│   └── metadata.json                   # Aggregated metrics and parameter logs
+│
+├── reports/
+│   ├── final_model_comparison_metrics.csv
+│   ├── actual_vs_predicted.png
+│   ├── residuals_plot.png
+│   ├── error_distribution.png
+│   └── feature_importance.png
+│
+├── app.py                              # Upgraded interactive Streamlit dashboard
+├── requirements.txt                    # List of required package versions
+├── verify_project.py                   # Automated validation and integration test
+├── .gitignore                          # Standard git exclusions (models, venv)
+└── README.md                           # Professional project documentation
+```
+
+---
+
+## 6. Pipeline Workflow & Methodology
+
+### Phase A: Complete Exploratory Data Analysis (EDA)
+- Run statistics checks using `data.info()` and `data.describe()`.
+- Identify data anomalies, notably that the raw minimum salary was negative (-13,727.57 INR) due to gaussian noise.
+- Check correlations: Years of Experience is the dominant feature correlated with Salary (~0.73).
+
+### Phase B: Data Cleaning
+- **Negative Salaries**: 2,136 records (1.07%) with negative salaries were dropped.
+- **Physical Inconsistencies**: 82,771 records (41.3%) were removed where `Years_of_Experience > Age - 18` (e.g. a 22-year-old claiming 15 years of experience). This is a critical quality check that drastically improves model reliability.
+
+### Phase C: Feature Engineering & Scaling
+- Feature scaling is applied to `Age` and `Years_of_Experience` using `StandardScaler`.
+- **Anti-Leakage Protocol**: Scaler is fit exclusively on training data, and then used to transform test and inference data.
+
+### Phase D: Model Training & Evaluation
+We train 5 regressors and compare them using Mean Absolute Error (MAE), Root Mean Squared Error (RMSE), and R² Score.
+
+| Model | MAE | RMSE | R² Score |
+|---|---|---|---|
+| **Lasso Regression** | **₹3,888.96** | **₹4,846.26** | **0.5386** |
+| Ridge Regression | ₹3,888.96 | ₹4,846.26 | 0.5386 |
+| Linear Regression | ₹3,888.96 | ₹4,846.26 | 0.5386 |
+| Tuned Random Forest | ₹3,898.94 | ₹4,860.13 | 0.5359 |
+| Decision Tree | ₹3,904.38 | ₹4,867.85 | 0.5344 |
+| Random Forest | ₹3,904.57 | ₹4,867.98 | 0.5344 |
+
+- *Note*: Lasso Regression was selected as the best overall model due to slightly higher R² (0.5386) and low computational latency.
+
+### Phase E: Hyperparameter Tuning
+We tuned the Random Forest Regressor on a representative sample of 10,000 training rows:
+- **GridSearchCV**: 108 fits completed in 26.65s. Best params: `{'max_depth': 10, 'min_samples_leaf': 2, 'min_samples_split': 5, 'n_estimators': 150}` (R² = 0.5163).
+- **RandomizedSearchCV**: 30 fits completed in 6.56s. Best params: `{'n_estimators': 150, 'min_samples_split': 2, 'min_samples_leaf': 2, 'max_depth': 10}` (R² = 0.5162).
+- *Insight*: RandomizedSearchCV achieved 99.9% of GridSearch performance in less than 25% of the time, demonstrating tuning efficiency.
+
+### Phase F: Feature Importance
+- **Years of Experience** holds **96.96%** of the relative predictive weight.
+- **Age** holds only **3.04%** once experience is accounted for.
+- *Conclusion*: Experience is the primary driver of compensation benchmarking, while Age has minor explanatory power.
+
+---
+
+## 7. Business Insights
+1. **Experience Dominates**: Years of experience is by far the single biggest driver of salary.
+2. **Quality Cleaning is Vital**: Removing physically inconsistent rows prevents the model from generating illogical predictions.
+3. **Linear Baselines are Robust**: The linear models achieved an R² score of 0.5386, performing slightly better than ensembles due to the underlying linear function of the synthetic data.
+4. **Diminishing Returns on Ensembles**: Random Forest is significantly heavier to train and tune, but yields no performance gain over Lasso in this linear scenario.
+5. **Age-Experience Correlation Gap**: Age has a weak direct correlation with salary, meaning a mature career changer with 0 years of experience starts closer to entry-level salary levels.
+
+---
+
+## 8. Dashboard Features
+- **Sidebar Menu**: Interactive radio buttons for Home, EDA Explorer, Predictor, and Metrics.
+- **Dashboard KPIs**: Metric cards displaying Total records, Average Salary, Salary Range, and Averages.
+- **Interactive EDA Tab**: Plotly express histograms, zoomable scatter plots, and hover heatmaps.
+- **Predictor Tab**: Sliders for Age and Experience, offering instant predictions, error margins, and a breakdown card.
+- **Performance Tab**: Model ranking lists, bar chart evaluations, and feature importance.
+
+---
+
+## 9. Installation & How to Run
+
+### Step 1: Clone or Open Workspace
+Ensure you are in the project folder `c:\Users\Shashank\OneDrive\ドキュメント\hr_sal_dashboard`.
+
+### Step 2: Initialize Virtual Environment
+```bash
+python -m venv .venv
+```
+
+### Step 3: Activate Virtual Environment
+- **PowerShell (Windows)**:
+  ```powershell
+  .venv\Scripts\Activate.ps1
+  ```
+- **Command Prompt (Windows)**:
+  ```cmd
+  .venv\Scripts\activate.bat
+  ```
+
+### Step 4: Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### Step 5: Run the End-to-End Pipeline
+To clean data, train models, tune parameters, and generate report plots:
+```bash
+python run_pipeline.py
+```
+
+### Step 6: Run Integration Tests
+To verify project integrity and check prediction logic:
+```bash
+python verify_project.py
+```
+
+### Step 7: Launch the Streamlit Dashboard
+```bash
+streamlit run app.py
+```
+
+---
+
+## 10. Future Scope
+- **Real Dataset Integration**: Train the model on authentic enterprise payroll records.
+- **Explainable AI (XAI)**: Add SHAP and LIME summary plots to the dashboard to show exactly how much age vs experience contributed to a specific individual's prediction.
+- **Database Integration**: Connect the backend to PostgreSQL or Snowflake for automated ingestion of real-time employee data.
+- **API Deployment**: Deploy the model as a FastAPI microservice behind an authentication gateway.
+- **Docker Support**: Containerize the app and database stack for seamless cloud deployment on GCP Cloud Run.
+- **Additional Predictor Inputs**: Integrate Education Level, Performance Ratings, Department, and City Tier to improve predictive accuracy.
+
+---
+
+## 11. Author
+*Senior Data Scientist & Machine Learning Engineer*
