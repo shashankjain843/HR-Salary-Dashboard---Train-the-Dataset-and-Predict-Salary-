@@ -1,106 +1,233 @@
 {
-    "best_model_name": "Lasso Regression",
+    "best_model_name": "Tuned Random Forest",
     "features": [
         "Age",
-        "Years_of_Experience"
+        "Years_of_Experience",
+        "Performance_Rating",
+        "Certifications",
+        "Job_Title",
+        "Department",
+        "Education_Level",
+        "Location_Tier"
+    ],
+    "num_cols": [
+        "Age",
+        "Years_of_Experience",
+        "Performance_Rating",
+        "Certifications"
+    ],
+    "cat_cols": [
+        "Job_Title",
+        "Department",
+        "Education_Level",
+        "Location_Tier"
+    ],
+    "transformed_features": [
+        "Age",
+        "Years_of_Experience",
+        "Performance_Rating",
+        "Certifications",
+        "Job_Title_Financial Analyst",
+        "Job_Title_HR Manager",
+        "Job_Title_HR Specialist",
+        "Job_Title_Lead Data Scientist",
+        "Job_Title_Marketing Specialist",
+        "Job_Title_Product Manager",
+        "Job_Title_Sales Executive",
+        "Job_Title_Senior Software Engineer",
+        "Job_Title_Software Engineer",
+        "Department_Engineering",
+        "Department_Finance",
+        "Department_Human Resources",
+        "Department_Product",
+        "Department_Sales & Marketing",
+        "Education_Level_High School",
+        "Education_Level_Master's",
+        "Education_Level_PhD",
+        "Location_Tier_Tier 2",
+        "Location_Tier_Tier 3 / Remote"
     ],
     "metrics": [
         {
             "Model": "Linear Regression",
-            "MAE": 3888.9552393977424,
-            "MSE": 23486274.360387,
-            "RMSE": 4846.263959008733,
-            "R2 Score": 0.5385681806487133,
-            "CV R2 Mean": 0.5436296318808498,
-            "CV R2 Std": 0.00522962951274307
+            "MAE": 4887.621724549819,
+            "MSE": 41618490.924045056,
+            "RMSE": 6451.239487419844,
+            "R2 Score": 0.9789217087245956,
+            "CV R2 Mean": 0.9787373490774491,
+            "CV R2 Std": 0.0003299272024774614
         },
         {
             "Model": "Ridge Regression",
-            "MAE": 3888.9552718943623,
-            "MSE": 23486270.555248328,
-            "RMSE": 4846.263566423965,
-            "R2 Score": 0.5385682554077846,
-            "CV R2 Mean": 0.543629632229737,
-            "CV R2 Std": 0.005229597866167923
+            "MAE": 4887.701913779772,
+            "MSE": 41622372.464551866,
+            "RMSE": 6451.540317207347,
+            "R2 Score": 0.9789197428618365,
+            "CV R2 Mean": 0.9787371401670425,
+            "CV R2 Std": 0.00032882841622365415
         },
         {
             "Model": "Lasso Regression",
-            "MAE": 3888.963127368708,
-            "MSE": 23486190.802986614,
-            "RMSE": 4846.255338195318,
-            "R2 Score": 0.5385698222902393,
-            "CV R2 Mean": 0.5436296097314888,
-            "CV R2 Std": 0.005229032491738941
+            "MAE": 4887.623111538047,
+            "MSE": 41624651.98872026,
+            "RMSE": 6451.716979899247,
+            "R2 Score": 0.9789185883635996,
+            "CV R2 Mean": 0.9787368762396909,
+            "CV R2 Std": 0.00032865182966877466
         },
         {
             "Model": "Decision Tree",
-            "MAE": 3904.3800382589757,
-            "MSE": 23695973.86475287,
-            "RMSE": 4867.851052030338,
-            "R2 Score": 0.5344482413883677,
-            "CV R2 Mean": 0.5381711067087128,
-            "CV R2 Std": 0.005049342349453132
+            "MAE": 4905.781965166667,
+            "MSE": 41523064.33197274,
+            "RMSE": 6443.839254045118,
+            "R2 Score": 0.9789700389128956,
+            "CV R2 Mean": 0.9763846188083878,
+            "CV R2 Std": 0.0006629796637035341
         },
         {
             "Model": "Random Forest",
-            "MAE": 3904.5683510869053,
-            "MSE": 23697212.05082013,
-            "RMSE": 4867.978230314936,
-            "R2 Score": 0.5344239149055486,
-            "CV R2 Mean": 0.538130266153002,
-            "CV R2 Std": 0.005046159145499085
+            "MAE": 3676.3501919699474,
+            "MSE": 22686725.34827253,
+            "RMSE": 4763.058402777834,
+            "R2 Score": 0.9885099773115581,
+            "CV R2 Mean": 0.9877810498288004,
+            "CV R2 Std": 0.0001978390298885204
         },
         {
             "Model": "XGBoost Regressor",
-            "MAE": 3892.724280554908,
-            "MSE": 23534957.80228814,
-            "RMSE": 4851.284139512768,
-            "R2 Score": 0.5376117033111831,
-            "CV R2 Mean": 0.5416969241710008,
-            "CV R2 Std": 0.005097653565280211
+            "MAE": 4296.052797703125,
+            "MSE": 36725459.12397714,
+            "RMSE": 6060.153391126098,
+            "R2 Score": 0.981399855990672,
+            "CV R2 Mean": 0.9811825405437062,
+            "CV R2 Std": 0.00025069448260587706
         },
         {
             "Model": "Tuned Random Forest",
-            "MAE": 3898.9373212801647,
-            "MSE": 23620843.797911175,
-            "RMSE": 4860.127961063492,
-            "R2 Score": 0.5359243121733203,
-            "CV R2 Mean": 0.5398901072288639,
-            "CV R2 Std": 0.005023640577309953
+            "MAE": 3667.6989088215546,
+            "MSE": 22554905.171612464,
+            "RMSE": 4749.200477092167,
+            "R2 Score": 0.9885767395611719,
+            "CV R2 Mean": 0.9878265145725169,
+            "CV R2 Std": 0.00018568515868380052
         }
     ],
     "tuning": {
         "grid_best_params": {
-            "max_depth": 10,
-            "min_samples_leaf": 2,
-            "min_samples_split": 5,
+            "max_depth": null,
+            "min_samples_leaf": 1,
+            "min_samples_split": 2,
             "n_estimators": 150
         },
-        "grid_best_score": 0.5023079304967325,
-        "grid_time": 19.712499141693115,
+        "grid_best_score": 0.9543473074825114,
+        "grid_time": 67.87774062156677,
         "random_best_params": {
             "n_estimators": 150,
             "min_samples_split": 2,
-            "min_samples_leaf": 2,
-            "max_depth": 10
+            "min_samples_leaf": 1,
+            "max_depth": null
         },
-        "random_best_score": 0.5022865408195388,
-        "random_time": 10.216979742050171,
+        "random_best_score": 0.9543473074825114,
+        "random_time": 28.842004537582397,
         "selected_params": {
-            "max_depth": 10,
-            "min_samples_leaf": 2,
-            "min_samples_split": 5,
+            "max_depth": null,
+            "min_samples_leaf": 1,
+            "min_samples_split": 2,
             "n_estimators": 150
         }
     },
     "rf_importance": [
         {
             "Feature": "Years_of_Experience",
-            "Importance": 0.9696379857427697
+            "Importance": 0.45055142892486977
+        },
+        {
+            "Feature": "Location_Tier_Tier 3 / Remote",
+            "Importance": 0.08559370173310069
+        },
+        {
+            "Feature": "Location_Tier_Tier 2",
+            "Importance": 0.06599212838607861
+        },
+        {
+            "Feature": "Job_Title_Lead Data Scientist",
+            "Importance": 0.06520660561959736
+        },
+        {
+            "Feature": "Education_Level_PhD",
+            "Importance": 0.042104201597565845
+        },
+        {
+            "Feature": "Job_Title_Sales Executive",
+            "Importance": 0.035669239953054925
+        },
+        {
+            "Feature": "Job_Title_Marketing Specialist",
+            "Importance": 0.03518701029381046
+        },
+        {
+            "Feature": "Performance_Rating",
+            "Importance": 0.03513494122550337
+        },
+        {
+            "Feature": "Job_Title_HR Specialist",
+            "Importance": 0.033228120794594286
+        },
+        {
+            "Feature": "Job_Title_Software Engineer",
+            "Importance": 0.03270045256687686
+        },
+        {
+            "Feature": "Job_Title_Financial Analyst",
+            "Importance": 0.030516047319154145
+        },
+        {
+            "Feature": "Education_Level_Master's",
+            "Importance": 0.028253602824313776
+        },
+        {
+            "Feature": "Job_Title_HR Manager",
+            "Importance": 0.018770376851159048
+        },
+        {
+            "Feature": "Job_Title_Product Manager",
+            "Importance": 0.012583692951239293
+        },
+        {
+            "Feature": "Job_Title_Senior Software Engineer",
+            "Importance": 0.009687289278443728
+        },
+        {
+            "Feature": "Education_Level_High School",
+            "Importance": 0.007861444465630495
+        },
+        {
+            "Feature": "Certifications",
+            "Importance": 0.004646342425045538
         },
         {
             "Feature": "Age",
-            "Importance": 0.03036201425723035
+            "Importance": 0.0036606685747590643
+        },
+        {
+            "Feature": "Department_Sales & Marketing",
+            "Importance": 0.000542771278368588
+        },
+        {
+            "Feature": "Department_Product",
+            "Importance": 0.000539879192352207
+        },
+        {
+            "Feature": "Department_Finance",
+            "Importance": 0.0005334158408607069
+        },
+        {
+            "Feature": "Department_Engineering",
+            "Importance": 0.0005224096537740181
+        },
+        {
+            "Feature": "Department_Human Resources",
+            "Importance": 0.0005142282498471315
         }
     ]
 }

@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 
 def load_data(file_path):
@@ -13,7 +13,7 @@ def load_data(file_path):
 def clean_data(df, target_col="Target_Salary"):
     """
     Cleans dataset by verifying and handling missing values, duplicates, 
-    data type validation, outlier detection (IQR), and physical age-experience constraints.
+    data type validation, outlier detection, and physical age-experience constraints.
     """
     print("\n--- Starting Data Cleaning ---")
     initial_rows = len(df)
@@ -23,12 +23,11 @@ def clean_data(df, target_col="Target_Salary"):
     print("Missing Values Check:")
     has_missing = False
     for col, count in null_counts.items():
-        print(f"  Column '{col}': {count} missing values")
         if count > 0:
+            print(f"  Column '{col}': {count} missing values")
             has_missing = True
             
     if has_missing:
-        # Drop rows with missing values as they represent a tiny portion or are essential for modeling
         df = df.dropna().reset_index(drop=True)
         print(f"  [ACTION] Dropped rows with missing values. Row count after: {len(df)}")
     else:
@@ -44,76 +43,56 @@ def clean_data(df, target_col="Target_Salary"):
         print("  [PASS] No duplicate records found.")
         
     # 3. Data Type Validation
-    print("Checking and Validating Data Types:")
-    for col in df.columns:
-        print(f"  Column '{col}': Current type is {df[col].dtype}")
+    num_cols = ["Age", "Years_of_Experience", "Performance_Rating", "Certifications"]
+    cat_cols = ["Job_Title", "Department", "Education_Level", "Location_Tier"]
     
-    # Explicitly enforce numeric types
-    try:
-        df["Age"] = pd.to_numeric(df["Age"]).astype("int64")
-        df["Years_of_Experience"] = pd.to_numeric(df["Years_of_Experience"]).astype("int64")
-        df[target_col] = pd.to_numeric(df[target_col]).astype("float64")
-        print("  [ACTION] Data types successfully validated and cast (Age: int64, Experience: int64, Salary: float64).")
-    except Exception as e:
-        print(f"  [WARNING] Data type casting failed: {str(e)}")
-        # Drop rows that cannot be cast to numeric
-        df = df.dropna(subset=["Age", "Years_of_Experience", target_col]).reset_index(drop=True)
-        df["Age"] = df["Age"].astype("int64")
-        df["Years_of_Experience"] = df["Years_of_Experience"].astype("int64")
-        df[target_col] = df[target_col].astype("float64")
-        print(f"  [ACTION] Kept and cast only numeric rows. Row count after: {len(df)}")
+    for col in num_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+            
+    for col in cat_cols:
+        if col in df.columns:
+            df[col] = df[col].astype(str)
 
-    # 4. Outlier Detection on Target Salary (using IQR)
-    q1 = df[target_col].quantile(0.25)
-    q3 = df[target_col].quantile(0.75)
-    iqr = q3 - q1
-    lower_bound = q1 - 1.5 * iqr
-    upper_bound = q3 + 1.5 * iqr
+    if target_col in df.columns:
+        df[target_col] = pd.to_numeric(df[target_col], errors='coerce')
+        
+    df = df.dropna().reset_index(drop=True)
     
-    outliers = df[(df[target_col] < lower_bound) | (df[target_col] > upper_bound)]
-    num_outliers = len(outliers)
-    print(f"Target Salary Outliers (IQR Method):")
-    print(f"  IQR: {iqr:.2f} | Lower Bound: {lower_bound:.2f} | Upper Bound: {upper_bound:.2f}")
-    print(f"  Detected outliers: {num_outliers} ({num_outliers/len(df)*100:.2f}%)")
-    print("  [DECISION] Outliers are kept as they represent valid high/low compensation cases and not errors.")
+    # Enforce integer types on discrete columns
+    for col in num_cols:
+        if col in df.columns:
+            df[col] = df[col].astype("int64")
 
-    # 5. Outliers / Invalid Value Check: Negative Salaries
-    negative_salaries = df[df[target_col] < 0]
-    num_negatives = len(negative_salaries)
-    print(f"Negative salaries detected: {num_negatives} ({num_negatives/len(df) * 100:.2f}%)")
-    if num_negatives > 0:
+    # 4. Negative Salary Check
+    if target_col in df.columns:
         df = df[df[target_col] >= 0].reset_index(drop=True)
-        print(f"  [ACTION] Removed {num_negatives} rows with negative salaries.")
-        print(f"  Row count after: {len(df)}")
-    
-    # 6. Physical Consistency Check (Age & Experience)
-    # Rules: Age must be >= 18, Experience must be >= 0, and Experience must be <= Age - 18 (working age)
+        
+    # 5. Physical Consistency Check (Age & Experience)
     invalid_age_exp = df[
         (df["Age"] < 18) | 
         (df["Years_of_Experience"] < 0) | 
         (df["Years_of_Experience"] > (df["Age"] - 18))
     ]
-    num_invalid_rules = len(invalid_age_exp)
-    print(f"Physically inconsistent Age/Experience rows: {num_invalid_rules}")
-    if num_invalid_rules > 0:
+    if len(invalid_age_exp) > 0:
         df = df[~df.index.isin(invalid_age_exp.index)].reset_index(drop=True)
-        print(f"  [ACTION] Removed {num_invalid_rules} physically inconsistent rows.")
-        print(f"  Row count after: {len(df)}")
+        print(f"  [ACTION] Removed {len(invalid_age_exp)} physically inconsistent rows.")
         
     print(f"Final Cleaned Dataset Dimensions: {df.shape[0]} rows x {df.shape[1]} columns")
-    print(f"Data Cleaning percentage reduction: {(initial_rows - len(df)) / initial_rows * 100:.2f}%")
     print("--- Data Cleaning Completed Successfully ---\n")
     return df
 
-def get_preprocessor(feature_cols):
+def get_preprocessor(num_cols, cat_cols):
     """
-    Creates and returns a ColumnTransformer that scales numerical features.
-    Strictly fit on training data and transform on test data to avoid leakage.
+    Creates and returns a ColumnTransformer that scales numerical features
+    and One-Hot encodes categorical features.
     """
     preprocessor = ColumnTransformer(
         transformers=[
-            ('num', StandardScaler(), feature_cols)
+            ('num', StandardScaler(), num_cols),
+            ('cat', OneHotEncoder(drop='first', handle_unknown='ignore', sparse_output=False), cat_cols)
         ],
         remainder='passthrough'
     )
     return preprocessor
+

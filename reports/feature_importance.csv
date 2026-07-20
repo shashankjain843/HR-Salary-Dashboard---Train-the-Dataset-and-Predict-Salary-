@@ -1,3 +1,24 @@
 Feature,Importance
-Years_of_Experience,0.9696379857427697
-Age,0.03036201425723035
+Years_of_Experience,0.45055142892486977
+Location_Tier_Tier 3 / Remote,0.08559370173310069
+Location_Tier_Tier 2,0.06599212838607861
+Job_Title_Lead Data Scientist,0.06520660561959736
+Education_Level_PhD,0.042104201597565845
+Job_Title_Sales Executive,0.035669239953054925
+Job_Title_Marketing Specialist,0.03518701029381046
+Performance_Rating,0.03513494122550337
+Job_Title_HR Specialist,0.033228120794594286
+Job_Title_Software Engineer,0.03270045256687686
+Job_Title_Financial Analyst,0.030516047319154145
+Education_Level_Master's,0.028253602824313776
+Job_Title_HR Manager,0.018770376851159048
+Job_Title_Product Manager,0.012583692951239293
+Job_Title_Senior Software Engineer,0.009687289278443728
+Education_Level_High School,0.007861444465630495
+Certifications,0.004646342425045538
+Age,0.0036606685747590643
+Department_Sales & Marketing,0.000542771278368588
+Department_Product,0.000539879192352207
+Department_Finance,0.0005334158408607069
+Department_Engineering,0.0005224096537740181
+Department_Human Resources,0.0005142282498471315

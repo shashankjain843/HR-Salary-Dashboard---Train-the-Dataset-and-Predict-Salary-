@@ -151,19 +151,22 @@ def tune_random_forest(X_train, y_train, sample_size=10000):
     
     return best_params, tuning_info
 
-def save_model(model, scaler, base_path):
-    """Saves model and scaler to the specified directory."""
+def save_model(model, preprocessor, base_path):
+    """Saves model and preprocessor to the specified directory."""
     os.makedirs(os.path.join(base_path, "models"), exist_ok=True)
     
     model_path = os.path.join(base_path, "models", "best_model.pkl")
-    scaler_path = os.path.join(base_path, "models", "scaler.pkl")
+    prep_path = os.path.join(base_path, "models", "preprocessor.pkl")
+    scaler_path = os.path.join(base_path, "models", "scaler.pkl") # for backward compatibility
     
     joblib.dump(model, model_path)
-    joblib.dump(scaler, scaler_path)
+    joblib.dump(preprocessor, prep_path)
+    joblib.dump(preprocessor, scaler_path)
     
-    # Copy to root as well for existing dashboard backward compatibility
+    # Copy to root as well for backward compatibility
     root_model_path = os.path.join(base_path, "salary_predictor_model.pkl")
     joblib.dump(model, root_model_path)
     
     print(f"Best model saved to {model_path} and {root_model_path}")
-    print(f"Scaler saved to {scaler_path}")
+    print(f"Preprocessor saved to {prep_path}")
+

@@ -40,42 +40,49 @@ def test_data_cleaning():
     print("Cleaned dataset test passed.\n")
 
 def test_model_loading_and_inference():
-    """Verify model and scaler loading, and running inference with scaled inputs."""
-    print("--- Testing Model & Scaler Inference ---")
+    """Verify model and preprocessor loading, and running inference with 8 features."""
+    print("--- Testing Model & Preprocessor Inference ---")
     base_dir = r"c:\Users\Shashank\OneDrive\ドキュメント\hr_sal_dashboard"
     model_path = os.path.join(base_dir, "models", "best_model.pkl")
-    scaler_path = os.path.join(base_dir, "models", "scaler.pkl")
+    prep_path = os.path.join(base_dir, "models", "preprocessor.pkl")
     metadata_path = os.path.join(base_dir, "models", "metadata.json")
     
     assert os.path.exists(model_path), "Model file best_model.pkl does not exist!"
-    assert os.path.exists(scaler_path), "Scaler file scaler.pkl does not exist!"
+    assert os.path.exists(prep_path), "Preprocessor file preprocessor.pkl does not exist!"
     assert os.path.exists(metadata_path), "Metadata file metadata.json does not exist!"
     
     model = joblib.load(model_path)
-    scaler = joblib.load(scaler_path)
+    preprocessor = joblib.load(prep_path)
     with open(metadata_path, "r") as f:
         meta = json.load(f)
         
     print(f"  Loaded model: {meta['best_model_name']}")
     
-    # Mock profiles: Age, Experience
+    # Mock profile with 8 features
     test_profiles = [
-        {"Age": 25, "Experience": 3},
-        {"Age": 30, "Experience": 8},
-        {"Age": 45, "Experience": 20},
-        {"Age": 55, "Experience": 35}
+        {
+            "Age": 28, "Years_of_Experience": 5, "Job_Title": "Software Engineer", 
+            "Department": "Engineering", "Education_Level": "Bachelor's", 
+            "Location_Tier": "Tier 1", "Performance_Rating": 4, "Certifications": 2
+        },
+        {
+            "Age": 42, "Years_of_Experience": 18, "Job_Title": "Lead Data Scientist", 
+            "Department": "Data & Analytics", "Education_Level": "Master's", 
+            "Location_Tier": "Tier 1", "Performance_Rating": 5, "Certifications": 4
+        }
     ]
     
     for profile in test_profiles:
-        features = pd.DataFrame([[profile["Age"], profile["Experience"]]], columns=["Age", "Years_of_Experience"])
-        scaled_features = pd.DataFrame(scaler.transform(features), columns=features.columns)
-        prediction = model.predict(scaled_features)[0]
+        df_single = pd.DataFrame([profile])
+        trans_features = preprocessor.transform(df_single)
+        prediction = model.predict(trans_features)[0]
         
         assert isinstance(prediction, (float, np.float64)), "Prediction is not a float!"
         assert prediction > 0, f"Predicted negative salary {prediction} for logical profile!"
-        print(f"  [PASS] Age {profile['Age']:2d} | Exp {profile['Experience']:2d} -> Predicted Salary: ₹{prediction:,.2f}")
+        print(f"  [PASS] {profile['Job_Title']} ({profile['Education_Level']}, {profile['Years_of_Experience']} yrs exp) -> Predicted Salary: ₹{prediction:,.2f}")
         
     print("Model inference test passed.\n")
+
 
 def test_reports_generation():
     """Verify reports and plots exist."""
@@ -126,12 +133,17 @@ def test_robustness_and_edge_cases():
     print(f"  [PASS] Detected age-experience inconsistency (Age: {inconsistent_age}, Exp: {inconsistent_exp}) successfully.")
     
     # 4. Prediction sanity check (must be non-negative for valid profile)
-    valid_feat = pd.DataFrame([[30, 5]], columns=["Age", "Years_of_Experience"])
+    valid_feat = pd.DataFrame([{
+        "Age": 30, "Years_of_Experience": 5, "Job_Title": "Software Engineer", 
+        "Department": "Engineering", "Education_Level": "Bachelor's", 
+        "Location_Tier": "Tier 1", "Performance_Rating": 3, "Certifications": 1
+    }])
     scaled_feat = scaler.transform(valid_feat)
     pred = model.predict(scaled_feat)[0]
     assert pred >= 0, f"Predicted negative salary ₹{pred} for valid profile!"
     print(f"  [PASS] Valid profile prediction check. Predicted salary: ₹{pred:,.2f} is non-negative.")
     print("Robustness and edge case tests passed.\n")
+
 
 if __name__ == "__main__":
     print("====================================")
